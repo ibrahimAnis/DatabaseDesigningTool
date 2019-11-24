@@ -1,0 +1,412 @@
+<!Doctype html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+</head>
+<script>
+function EntityGrid(vModel,vContainerID)
+{
+var container;
+var containerID;
+var model=vModel;
+var loading=true;
+var data=[];
+var table;
+var tableBody;
+var tableHeader;
+var selectedRowIndex=-1;
+var THIS=this;
+// event handlers start
+this.onRowSelected=null;
+this.onCellContentClicked=null;
+this.selectRow=null;
+this.hideLoading=function()
+{
+tableBody.innerHTML="";
+loading=false;
+}
+this.showLoading=function()
+{
+loading=true;
+tableBody.innerHTML="";
+var tr=document.createElement("tr");
+var td=document.createElement("td");
+td.innerHTML=model.getLoadingHTML();
+td.style.textAlign='center';
+tr.appendChild(td);
+tableBody.appendChild(tr);
+}
+// event handlers end
+this.update=function()
+{
+if(loading==true) return;
+var rowCount=model.getRowCount();
+var columnCount=model.getColumnCount();
+var i,j;
+tableBody.innerHTML="";
+var tr,td,cellType,textNode,imageNode,image;
+function cellContentClickHandlerCreator(rowNumber,cellNumber)
+{
+return function()
+{
+raiseCellContentClickedEvent(rowNumber,cellNumber);
+};
+}
+
+function rowSelectionHandlerCreator(rowNumber)
+{
+return function()
+{
+raiseRowSelectedEvent(rowNumber);
+};
+}
+for(i=0;i<rowCount;i++)
+{
+tr=document.createElement("tr");
+tr.setAttribute('class',model.getRowStyle(i));
+tr.rowNumber=i;
+for(j=0;j<columnCount;j++)
+{
+td=document.createElement("td");
+td.style.width=model.getColumnWidth(j);
+td.setAttribute('class',model.getCellStyle(i,j));
+cellType=model.getCellType(i,j).toUpperCase();
+if(cellType=='TEXT')
+{
+textNode=document.createTextNode(model.getValueAt(i,j));
+textNode.onclick=cellContentClickHandlerCreator(i,j);
+td.appendChild(textNode);
+} else if(cellType=='IMAGE')
+{
+image=document.createElement('img');
+image.src=model.getValueAt(i,j);
+image.onclick=cellContentClickHandlerCreator(i,j);
+td.appendChild(image);
+} else if(cellType=='HTML')
+{
+td.innerHTML=model.getValueAt(i,j);
+td.onclick=cellContentClickHandlerCreator(i,j);
+}
+tr.appendChild(td);
+}
+tr.style.cursor='pointer';
+tr.onclick=rowSelectionHandlerCreator(i);
+tableBody.appendChild(tr);
+}
+}  // update function ends here
+
+containerID=vContainerID;
+container=document.getElementById(containerID);
+// creating one time table structure ends here
+var THIS=this;
+this.selectRow=function(rowNumber)
+{
+setTimeout(function()
+{
+raiseRowSelectedEvent(rowNumber);
+},200);
+};
+function raiseRowSelectedEvent(rowNumber)
+{
+if(rowNumber==selectedRowIndex) return;
+if(selectedRowIndex!=-1) tableBody.rows[selectedRowIndex].setAttribute('class',model.getRowStyle());
+selectedRowIndex=rowNumber;
+//alert("Selected row index"+selectedRowIndex);
+tableBody.rows[selectedRowIndex].setAttribute('class',model.getSelectedRowStyle());
+if(THIS.onRowSelected)
+{
+setTimeout(function()
+{
+THIS.onRowSelected(selectedRowIndex);
+},5);
+}
+}
+function raiseCellContentClickedEvent(rowNumber,cellNumber)
+{
+if(THIS.onCellContentClicked)
+{
+setTimeout(function()   // not done
+{
+THIS.onCellContentClicked(selectedRowIndex,cellNumber);
+},100);
+}
+}
+
+function createTable()
+{
+table=document.createElement('table');
+tableHeader=document.createElement('thead');
+var i;
+var tr,th,td;
+var border;
+tr=document.createElement("tr");
+var columnCount=model.getColumnCount();
+border='1px solid'+model.getBorderColor();
+for(i=0;i<columnCount;i++)
+{
+th=document.createElement("th");
+th.innerHTML=model.getColumnTitle(i);
+th.setAttribute('class',model.getHeaderStyle(i));
+th.style.width=model.getColumnWidth(i);
+th.style.border=border;
+tr.appendChild(th);
+}
+tableHeader.appendChild(tr);
+table.appendChild(tableHeader);
+tableBody=document.createElement("tbody");
+tableBody.style.display='block';
+if(model.getBodyHeight) tableBody.style.height=model.getBodyHeight();
+tableBody.style.overflow='scroll';
+THIS.showLoading();
+table.style.display='block';
+table.appendChild(tableBody);
+table.border=border;
+table.style.borderCollapse='collapse';
+container.innerHTML="";
+container.appendChild(table);
+}// create table ends here
+createTable();
+this.update();
+model.setGrid(this);
+table.setAttribute("tabindex",0);
+table.addEventListener('keydown',function(ev)
+{
+if(ev.keyCode==38)
+{
+if(selectedRowIndex>0)
+{
+raiseRowSelectedEvent(selectedRowIndex-1);
+}
+}
+if(ev.keyCode==40)
+{
+if(selectedRowIndex<model.getRowCount()-1)
+{
+raiseRowSelectedEvent(selectedRowIndex+1);
+}
+}
+if(ev.keyCode==38 || ev.keyCode==40)
+{
+if(ev.preventDefault) ev.preventDefault();
+else if(ev.cancelBubble) ev.cancelBubble=true;
+}
+});
+}
+// TM ENDS HERE
+function EntityModel()
+{
+var pageNumber=0;
+var pageSize=0;
+var numberOfRecords=0;
+var databaseFields=[];
+var navigationButtonCount=5;
+var grid=null;
+var titles=["S.No","Key","Field Name","Datatype","NotNull","Default","Unique","Check","Edit","Delete"];
+var THIS=this;
+this.setSelectedRow=function(rowNumber)
+{
+grid.selectRow(rowNumber);
+}
+this.setDatabaseFieldCount=function(vNumberOfRecords)
+{
+numberOfRecords=vNumberOfRecords;
+}
+this.setGrid=function(vGrid)
+{
+grid=vGrid;
+}
+this.getDatabaseField=function(index)
+{
+return databaseFields[index];
+}
+this.getRowCount=function()
+{
+return databaseFields.length;
+}
+this.getColumnCount=function()
+{
+return titles.length;
+}
+this.getColumnTitle=function(columnIndex)
+{
+return titles[columnIndex];
+}
+this.getBodyHeight=function()
+{
+return "250px";
+}
+this.getColumnWidth=function(columnIndex)
+{
+if(columnIndex==0) return "5px";
+if(columnIndex==1) return "8px";
+if(columnIndex==2) return "25px";
+if(columnIndex==3) return "10px";
+if(columnIndex==4) return "5px";
+if(columnIndex==5) return "5px";
+if(columnIndex==6) return "5px";
+if(columnIndex==7) return "15px";
+if(columnIndex==8) return "5px";
+if(columnIndex==9) return "5px";
+}
+this.getHeaderStyle=function()
+{
+return "gridHeader";
+}
+this.getBorderColor=function()
+{
+return '#000000';
+}
+this.getLoadingHTML=function()
+{
+return "<label class='loading'>Loading....</label>";  
+}
+this.getRowStyle=function(rowIndex)
+{
+if(rowIndex%2==0) return 'gridEvenRow';
+else return "gridOddRow";
+}
+this.getSelectedRowStyle=function()
+{
+return 'gridSelectedRow';
+}
+this.getCellStyle=function(rowIndx,columnIndex)
+{
+if(columnIndex==0) return "serialNumberColumn";
+if(columnIndex==1) return "iconColumn";
+if(columnIndex==2) return "fieldColumn";
+if(columnIndex==3) return "fieldColumn";
+if(columnIndex>=4 && columnIndex<6) return "iconColumn";
+if(columnnIndex==6) return "fieldColumn";
+if(columnIndex==7) return "fieldColumn";
+if(columnIndex>=8) return "iconColumn";
+}
+this.getCellType=function(rowIndex,columnIndex)
+{
+if(columnIndex==0) return "TEXT";
+if(columnIndex==1) return "IMAGE";
+if(columnIndex==2) return "TEXT";
+if(columnIndex==3) return "TEXT";
+if((columnIndex>=4 && columnIndex<6)||(columnIndex>=8)) return "IMAGE";
+if(columnIndex==6 || columnIndex==7) return "TEXT";
+}
+this.getValueAt=function(rowIndex,columnIndex)
+{
+if(columnIndex==0) return rowIndex+1;
+if(columnIndex==1) 
+{
+if(databaseFields[rowIndex].isPrimaryKey) return 'images/key.png';
+}
+if(columnIndex==2) return databaseFields[rowIndex].name;
+if(columnIndex==3) return databaseFields[rowIndex].datatype;
+if(columnIndex==4)
+{
+if(databaseFields[rowIndex].isNotNull) return "images/correct.png";
+}
+if(columnIndex==5)
+{
+if(databaseFields[rowIndex].isUnique) return "images/correct.png";
+}
+if(columnIndex==6)
+{
+return databaseFields[rowIndex].default;
+}
+if(columnIndex==7) return databaseFields[rowIndex].check;
+if(columnIndex==8) return "images/edit_icon.png";
+if(columnIndex==9) return "images/delete_icon.png";
+}
+this.setDatabaseFields=function(vDatabaseFields)
+{
+databaseFields=vDatabaseFields
+grid.hideLoading();
+grid.update();
+}
+}
+function EntityController(vDatabaseFields)
+{
+var entityModel=null;
+var entityGrid=null;
+var databaseFields=vDatabaseFields
+entityModel=new EntityModel();
+entityGrid=new EntityGrid(entityModel,'attributeTab');
+if(databaseFields)
+{
+entityModel.setDatabaseFieldCount(databaseFields.length);
+entityModel.setDatabaseFields(databaseFields);
+}
+EntityGrid.onRowSelected=function(index)
+{
+alert(JSON.stringify(entityModel.getDatabaseFields(index)));
+}
+EntityGrid.onCellContentClicked=function(rowIndex,columnIndex)
+{
+if(columnIndex==2) alert("The user wants to edit:->"+JSON.stringify(entityModel.getDatabaseField(rowIndex)));
+if(columnIndex==3) alert("The user wants to delete:->"+JSON.stringify(entityModel.getDatabaseField(rowIndex)));
+}
+}  // DepartmentController ends here
+var entityController=null;
+function initializeModule()
+{
+entityController=new EntityController(
+{
+});
+}
+window.addEventListener('load',initializeModule);
+</script>
+<style>
+.loading
+{
+font-family:"Verdana","Times New Roman",Times,serif;
+font-style:normal;
+font-size:24px;
+color:green;
+}
+.gridHeader
+{
+font-family:"Times New Roman",Times,serif;
+font-style:bold;
+font-size:18px;
+}
+.serialNumberColumn
+{
+font-family:"Times New Roman",Times,serif;
+font-style:normal;
+font-size:16px;
+text-align:right;
+}
+.fieldColumn
+{
+font-family:"Times New Roman",Times,serif;
+font-style:normal;
+font-size:16px;
+text-align:left;
+}
+.gridEvenRow
+{
+background-color:#D6D6D6;
+color:black;
+height:40px;
+min-height:40px;
+}
+.gridOddRow
+{
+background-color:white;
+color:black;
+height:40px;
+min-height:40px;
+}
+
+.gridSelectedRow
+{
+background-color:#2693FF;
+color:#FFFFFF;
+height:40px;
+min-height:40px;
+}
+.iconColumn
+{
+text-align:center;
+}
+</style>
+<body>
+<div id='attributeTab'></div>
+</body>
