@@ -1,0 +1,50 @@
+---------------------------- servlet mapping to be copied in web.xml ----------------------
+------------ Note : you can change the url patterns according to your requirement ------
+------------ Note : you can change the values in multipart-config tag ---------------------
+------------ Note : you can change the name of configuration file and its folder ----------
+
+<servlet>
+    <servlet-name>TMWebService</servlet-name>
+    <servlet-class>com.thinking.machines.tmws.TMWebService</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <init-param>
+    <param-name>configuration</param-name>
+    <param-value>/WEB-INF/conf/configuration.xml</param-value>
+    </init-param>
+    <init-param>
+    <param-name>development-mode</param-name>
+    <param-value>true</param-value>
+    </init-param>
+       <init-param>
+    <param-name>tmwsjs-path</param-name>
+    <param-value>jsfiles</param-value>
+    </init-param>
+    </servlet>
+    <servlet-mapping>
+    <servlet-name>TMWebService</servlet-name>
+    <url-pattern>/webservice/*</url-pattern>
+    </servlet-mapping>
+    <servlet>
+    <servlet-name>TMFileUploadWebService</servlet-name>
+    <servlet-class>com.thinking.machines.tmws.TMFileUploadWebService</servlet-class>
+    <load-on-startup>2</load-on-startup>
+    <multipart-config>
+       <max-file-size>20848820</max-file-size>
+       <max-request-size>418018841</max-request-size>
+       <file-size-threshold>1048576</file-size-threshold>
+    </multipart-config>
+    </servlet>
+    <servlet-mapping>
+    <servlet-name>TMFileUploadWebService</servlet-name>
+    <url-pattern>/fileservice/*</url-pattern>
+    </servlet-mapping>
+
+----------------------------------------------------------------------------------------------------
+---------------------------- configuration file entry ----------------------------------------------
+-------------- Note : you can add as many package entries as required -----------------------
+<?xml version='1.0' encoding='utf-8' ?>
+<packages>
+<package>your services package 1 name goes here</package>
+<package>your services package 2 name goes here</package>
+<package>your services package 3 name goes here</package>
+</packages>
