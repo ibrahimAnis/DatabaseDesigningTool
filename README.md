@@ -1,6 +1,5 @@
 # An Interactive Data Modeler (AIDM)
-
-Data Modeler is a Entity-Relationship web component for drawing diagrams in Barker notation.
+One of the important part while designing a webapplication is to design Database Schema and write 1000 or more lines of SQL script. This may increase the chances of human errors. Also it took so much time to write these scripts. So to remove this vulnerability I decided to build a #webaapplication that can generate #SQL script in multiple #RDBMS technologies automatically and helps in visualizing the database schema easily
 
 ## Preview
 
