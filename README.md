@@ -22,7 +22,7 @@ Yet to go live
 
 ## Declaration/License
 
-As the declaration from the thesis states, you may use this project for nonprofit purposes:
+you may use this project for nonprofit purposes:
 
 ```text
 I hereby declare that the presented thesis is my own work and that I have
