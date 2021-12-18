@@ -10,11 +10,9 @@ One of the important part while designing a webapplication is to design Database
 - support for drawing logical models on web page
 - automatic diagram layout, which ensures that equivalent diagrams are displayed in the same way
 - save to database storage to preserve your work
-- undo/redo (experimental)
-- import and export to JSON, which may also be used to compare models as strings 
-- import of Oracle SQL Developer Data Modeler Design, in form of a zip file
 - support for multiple diagrams on one page
-- Generate SQL Script in any RDBMS technology
+- Generate SQL Script in any RDBMS technology and download the script.
+- Take a snapshot of your database schema and save it in your computer.
 
 
 ## Deployment
